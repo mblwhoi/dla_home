@@ -1,0 +1,109 @@
+<?php
+// $Id: menusync.install,v 1.1.2.3 2010/07/09 13:01:45 rsevero Exp $
+
+/**
+ * @file
+ * Installation file for menusync module.
+ *
+ * @ingroup menusync
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function menusync_install() {
+  // Create my tables.
+  drupal_install_schema('menusync');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function menusync_uninstall() {
+  // Drop my tables.
+  drupal_uninstall_schema('menusync');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function menusync_schema() {
+  $schema['menusync_rules'] = array(
+    'description' => 'Stores menusync rules.',
+    'fields' => array(
+      'msid' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique menusync rule ID.',
+      ),
+      'menu_name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The menu name.',
+      ),
+      'mlid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The menu link item ID.',
+      ),
+      'path' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+        'description' => 'The menusync rule.',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this rule in relation to other rules.',
+      ),
+
+     'description' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'The description of this rule.',
+      ),
+    ),
+    'primary key' => array('msid'),
+    'indexes' => array(
+      'menu_name' => array('menu_name'),
+      'weight' => array('weight'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implementation of hook_requirements().
+ */
+function menusync_requirements($phase) {
+  $requirements = array();
+
+  // Ensure translations don't break at install time.
+  $t = get_t();
+
+  if ($phase == 'runtime') {
+
+    if (module_exists('menufake')) {
+      $requirements['menusync_menufake'] = array(
+        'title' => $t('Menu Fake'),
+        'description' => $t('Modules Menu Sync and Menu Fake should not be used
+          together. Please move all Menu Fake rules to Menu Sync and uninstall
+          Menu Fake.'
+        ),
+        'severity' => REQUIREMENT_ERROR,
+        'value' => $t('Enabled'),
+      );
+    }
+  }
+
+  return $requirements;
+}

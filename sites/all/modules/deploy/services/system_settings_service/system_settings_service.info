@@ -1,0 +1,13 @@
+; $Id: system_settings_service.info,v 1.1.4.1 2009/03/19 04:31:58 heyrocker Exp $
+name = "System Settings Service"
+description = "Provides a services interface to export and import system settings."
+dependencies[] = services
+package = Services - services
+core = 6.x
+
+; Information added by drupal.org packaging script on 2010-12-06
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "deploy"
+datestamp = "1291594116"
+

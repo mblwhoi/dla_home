@@ -1,0 +1,111 @@
+<?php 
+// $Id: linkit_taxonomy.module,v 1.7.2.2 2010/11/24 22:20:47 anon Exp $
+
+/**
+ * @file
+ * Extend Linkit with taxonomy links.
+ */
+
+
+/**
+ * Implementation of hook_linkit_load_plugins().
+ */
+function linkit_taxonomy_linkit_load_plugins($string) {
+  $matches = array();
+
+  $settings = variable_get('linkit_term', array());
+
+  // Prevent "PHP notice: Undefined variable"
+  _linkit_taxonomy_get_default_settings($settings);
+
+  $fields = array('t.name', 't.tid '); // default fields
+  $from = array('{term_data} t'); // default from
+  $where = array(); // default where
+
+ // Prebuild the SQL query
+  $sql = array();
+  $sql[] = "SELECT %s";
+  $sql[] = "FROM " . implode(" ", $from);
+  $sql[] = "WHERE LOWER(t.name) LIKE LOWER('%%%s%%') %s";
+
+  // Get terms
+  $result = db_query_range(db_rewrite_sql(implode(" ", $sql), 't', 'tid'), implode(",", $fields), $string, implode(" ", $where), 0, 10);
+  $i = 0;
+  while ($term = db_fetch_object($result)) {
+    $matches['taxonomy'][$i] = array(
+      'title' => $term->name,
+      'path' => 'internal:taxonomy/term/' . $term->tid,
+      'information' => array(
+        'type' => 'Taxonomy',
+      ),
+    );
+    // Add the taxonomy path
+    if ($settings['display_settings']['show_parent']) {
+      // Possible to find all parents to the root level, for now this isnt really pretty to put in
+      // $parents = taxonomy_get_parents_all($term->tid);
+
+      // The API says "Find all parents of a given term ID." but thats not true
+      // It is only returning the very next parent
+      $parents = taxonomy_get_parents($term->tid);
+      
+      if (count($parents)) {
+        $current = current($parents);
+        $matches['taxonomy'][$i]['information']['parent'] = $current->name;
+      }
+    } 
+    $i++;
+  }
+  return  $matches;
+}
+
+/**
+ * Implementation of hook_linkit_get_search_styled_link().
+ */
+function linkit_taxonomy_linkit_get_search_styled_link($string) {
+  // Term links created with Linkit will always begin with "internal:"
+  if (strpos($string, 'internal:') === FALSE) {
+    return;
+  }
+
+  // Check to see that the link really is a term link
+  $splitted_string = explode('/', str_replace('internal:', '', $string));
+  if ($splitted_string[0] != 'taxonomy') {
+    return;
+  }
+
+  // This is a term link created with Linkit, try to grab the title and path now. 
+  $result = db_query(db_rewrite_sql("SELECT td.tid, td.name FROM {term_data} td WHERE td.tid = %d"), $splitted_string[2]);
+  $term = db_fetch_object($result);
+
+  // No reault or no term was found
+  if (!$result || !$term) {
+    return;
+  }
+
+  return check_plain($term->name) . ' [path:internal:taxonomy/term/' . $term->tid . ']';
+}
+
+/**
+ * Implementation of hook_linkit_info_plugins().
+ * 
+ * This is used by linkit_permissions
+ */
+function linkit_taxonomy_linkit_info_plugins() {
+  $return['linkit_taxonomy'] = array(
+    'type' => 'taxonomy',
+  );
+  return $return;
+}
+
+/**
+ * Prevent "PHP notice: Undefined variable" by merging the settings 
+ * with the defule values
+ */
+function _linkit_taxonomy_get_default_settings(&$settings) {
+  // Merge settings with the default settings
+  $settings += array(
+    'display_settings' => array(
+      'show_parent' => 0,
+    ), 
+  );
+}

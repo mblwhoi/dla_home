@@ -1,0 +1,13 @@
+; $Id: content_copy_deploy.info,v 1.1.2.1 2009/05/05 14:00:33 heyrocker Exp $
+name = "Deploy Content Type"
+description = "Deploy content types using the Deployment framework"
+package = Deployment
+dependencies[] = deploy
+dependencies[] = content_copy
+core = 6.x
+; Information added by drupal.org packaging script on 2010-12-06
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "deploy"
+datestamp = "1291594116"
+

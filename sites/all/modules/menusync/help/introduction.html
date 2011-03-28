@@ -1,0 +1,31 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- $Id: introduction.html,v 1.1.2.1 2010/07/09 12:29:15 rsevero Exp $ -->
+<html>
+  <head>
+    <title>Menu Sync - Introduction</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+  <body>
+    <p>Menu Sync open menu options based on the path being presented.</p>
+    <p>Menu Sync is similar to <a href=""http://drupal.org/project/menutrails">
+      Menu Trails</a> but it uses paths to define the pages affected.</p>
+    <p>Another important difference between Menu Sync and Menu Trails is the
+      method used to set the desired menu option. The method used by Menu Sync
+      allows it to affect more than one menu in the same page. Apparently this
+      is not possible with Menu Trails.</p>
+    <h3>Configuration</h3>
+    <p>All configuration is done at <i>admin/content/menusync</i>.</p>
+    <p>The first step is to choose the menu that will be affected by the rule to
+      be created. Click in the <i>add rule</i> link for the proper menu.</p>
+    <p>At the <i>add rule</i> page the first step is to choose the menu option
+      that shall be activated by the rule.</p>
+    <p>The final mandatory step is to define the path of the page that should
+      have the selected menu option activated. Wildcards are accepted at path
+      definition.</p>
+    <p>The <i>Description</i> field may hold some kind of explanation for this
+      rule.</p>
+    <p>As rules are checked in order and the first rules that is applied stops
+      the process it might be important to change rule processing order with the
+      <i>Weight</i> field.</p>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+; $Id: filefield_deploy.info,v 1.1.2.1 2009/10/18 05:07:10 heyrocker Exp $
+name = "Deploy Files"
+description = "Deploy filefield files using the Deployment framework"
+dependencies[] = deploy
+dependencies[] = filefield
+package = Deployment
+core = 6.x
+; Information added by drupal.org packaging script on 2010-12-06
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "deploy"
+datestamp = "1291594116"
+

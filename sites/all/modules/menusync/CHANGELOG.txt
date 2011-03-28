@@ -1,0 +1,37 @@
+// $Id: CHANGELOG.txt,v 1.2.2.13 2010/07/21 12:46:10 rsevero Exp $
+
+
+Menu Sync 6.x-1.0, 2010-07-21
+----------------------
+task by rsevero: Renamed RC1 to stable.
+
+
+Menu Sync 6.x-1.0-RC1, 2010-07-15
+----------------------
+task by rsevero: Changed CHANGELOG file to show RC1.
+task by rsevero: Updated translation template and brazilian portuguese
+  translation.
+task #849406 by rsevero: Created requirement to check if Menu Fake is installed.
+task by rsevero: Minor formatting in menusync.admin.inc
+bug #849384 by rsevero: Fixed mandatory "path" field in the "add rule" page.
+task #849378 by rsevero: Created Advanced Help pages.
+
+
+Menu Sync 6.x-1.0-BETA3, 2010-07-08
+----------------------
+task #848852 by rsevero: Created translation template and brazilian portuguese
+  translation.
+bug #848848 by rsevero: Fixed watchdog entries identification.
+task #848838 by rsevero: Fixed module name.
+
+
+Menu Sync 6.x-1.0-BETA2, 2010-07-08
+----------------------
+bug #848832 by rsevero: Fixed creation of schema tables in installation.
+
+
+Menu Sync 6.x-1.0-BETA1, 2010-07-08
+----------------------
+task by rsevero: Minor formating in menusync.admin.inc
+task by rsevero: Formated menusync.admin.inc to Drupal coding standards.
+task by Rilson Raposo: Initial commit.

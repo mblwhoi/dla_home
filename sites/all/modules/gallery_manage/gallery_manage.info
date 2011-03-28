@@ -1,0 +1,17 @@
+; $Id: $ 
+name = Image Gallery Management
+description = Enables mass assignment of images to a different category via thumbnails.
+package = Image
+dependencies[] = image_gallery
+
+version = "6.x-1.0-beta"
+core = "6.x"
+project = "gallery_manage"
+
+
+; Information added by drupal.org packaging script on 2010-01-26
+version = "6.x-1.0-beta6"
+core = "6.x"
+project = "gallery_manage"
+datestamp = "1264499707"
+

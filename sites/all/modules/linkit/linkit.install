@@ -1,0 +1,56 @@
+<?php
+// $Id: linkit.install,v 1.2.2.4 2010/10/24 12:52:27 anon Exp $
+
+/**
+ * @file
+ * Installation file for linkit.
+ */
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function linkit_uninstall() {
+  db_query("DELETE FROM {variable} WHERE name LIKE 'linkit%'");
+}
+
+/**
+ * Implementation of hook_requirements().
+ */
+function linkit_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+
+  switch ($phase) {
+  case 'runtime':
+    if (!module_exists('pathfilter') && !module_exists('pathologic')) {
+      $severity = REQUIREMENT_ERROR; 
+      $value = t('Please install pathfilter <strong>OR</strong> pathologic');
+    }
+    else {
+      $severity = REQUIREMENT_OK; 
+      $value = t('Ok');
+    }
+    $requirements['linkit_dependencies'] = array(
+        'title' => t('Linkit'),
+        'severity' => $severity,
+        'value' => $value,
+        'description' =>  t('To parse "internal:" links <a href="@pathfilter">pathfilter</a> <strong>OR</strong> <a href="@pathologic">pathologic</a> most be installed.', array(
+          '@pathfilter' => 'http://drupal.org/project/pathfilter',
+          '@pathologic' => 'http://drupal.org/project/pathologic'
+        )),
+      );
+    break;
+  }
+  return $requirements;
+}
+
+/**
+ * Create a new variable and add the old settings to it.
+ */
+function linkit_update_6100() {
+  $ret = array();
+  $old = variable_get('linkit_node', array());
+  $new = array('display_settings' => $old);
+  variable_set('linkit_node', $new);
+  return $ret;  
+}

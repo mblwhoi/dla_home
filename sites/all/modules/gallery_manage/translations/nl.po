@@ -1,0 +1,110 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Image Gallery Management Dutch translation\n"
+"POT-Creation-Date: 2009-02-03 17:29+0100\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Jack <j.garmisch@gmail.com>\n"
+"Language-Team: Garmisch <j.garmisch@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Dutch\n"
+"X-Poedit-Country: Belgium\n"
+
+#: gallery_manage.module:16
+msgid "Assign images to galleries via thumbnails"
+msgstr "Ken afbeeldingen toe aan albums d.m.v. miniatuurvoorbeelden"
+
+#: gallery_manage.module:25
+msgid "Other options"
+msgstr "Andere opties"
+
+#: gallery_manage.module:75
+msgid "Custom message"
+msgstr "Pas het bericht aan"
+
+#: gallery_manage.module:79
+msgid "Message"
+msgstr "Bericht"
+
+#: gallery_manage.module:80
+msgid "You may enter a message to show users before they upload images."
+msgstr "U kan een bericht opgeven dat aan de gebruikers wordt getoond vóór zij afbeeldingen uploaden."
+
+#: gallery_manage.module:88
+msgid "Weight"
+msgstr "Gewicht"
+
+#: gallery_manage.module:89
+msgid "This will affect where your message appears on the Create Image page."
+msgstr "Dit beïnvloedt waar uw bericht verschijnt op de 'Afbeelding Aanmaken' pagina."
+
+#: gallery_manage.module:165;222
+msgid "Gallery"
+msgstr "Album"
+
+#: gallery_manage.module:173
+msgid "Show only images from"
+msgstr "Laat alleen afbeeldingen zien van"
+
+#: gallery_manage.module:179;298
+msgid "Filter"
+msgstr "Filter"
+
+#: gallery_manage.module:184;303
+msgid "Reset"
+msgstr "Terugzetten"
+
+#: gallery_manage.module:191
+msgid "Assign selected images to"
+msgstr "Ken de geselecteerde afbeeldingen toe aan"
+
+#: gallery_manage.module:196;242
+msgid "Update"
+msgstr "Bijwerken"
+
+#: gallery_manage.module:219
+msgid "There are no gallery images."
+msgstr "Er zijn geen afbeeldingenalbums."
+
+#: gallery_manage.module:222
+msgid "Title"
+msgstr "Titel"
+
+#: gallery_manage.module:222
+msgid "Thumbnail"
+msgstr "Miniatuurvoorbeeld"
+
+#: gallery_manage.module:254
+msgid "You must select at least one image to assign to a gallery."
+msgstr "U moet tenminste één afbeelding selecteren om aan een album toe te wijzen."
+
+#: gallery_manage.module:292
+msgid "Finished assigning images to galleries"
+msgstr "Toekennen van afbeeldingen aan albums beëindigd"
+
+#: gallery_manage.module:15
+msgid "Manage"
+msgstr "Beheer"
+
+# Wordt o.a. in Firefox ook niet vertaald. 
+#: gallery_manage.module:24
+msgid "Add-ons"
+msgstr "Add-ons"
+
+#: gallery_manage.module:0
+msgid "gallery_manage"
+msgstr "gallery_manage"
+
+#: gallery_manage.info:0
+msgid "Image Gallery Management"
+msgstr "Image Gallery Management"
+
+#: gallery_manage.info:0
+msgid "Enables mass assignment of images to a different category via thumbnails."
+msgstr "Schakelt het massaal toekennen van afbeeldingen aan een andere categorie d.m.v. miniatuurvoorbeelden in."
+
+#: gallery_manage.info:0
+msgid "Image"
+msgstr "Afbeelding"
+

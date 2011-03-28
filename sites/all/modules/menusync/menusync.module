@@ -1,0 +1,231 @@
+<?php
+// $Id: menusync.module,v 1.1.2.2 2010/07/08 21:51:05 rsevero Exp $
+
+/**
+ * @file
+ * A module to activate menus using path templates.
+ *
+ * @ingroup menusync
+ */
+
+/**
+ * Implementation of hook_perm().
+ */
+function menusync_perm() {
+  return array('administer Menu Sync');
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function menusync_theme() {
+  return array(
+    'menusync_term_select' => array(
+      'arguments' => array('element' => NULL),
+    ),
+    'menusync_term_page' => array(
+      'arguments' => array('tids' => array(), 'result' => NULL),
+    ),
+   /* 'menusync_overview_menus' => array(
+      'arguments' => array('form' => array()),
+    ),*/
+    'menusync_overview_rules' => array(
+      'arguments' => array('form' => array()),
+    ),
+
+   'menusync_menu_list_form' => array(
+      'arguments' => array('form' => NULL),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function menusync_menu() {
+  /* list menus and rules counter */
+  $items['admin/content/menusync'] = array(
+    'title' => 'Menu Sync',
+    'description' => 'Manage Menu Sync rules.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('menusync_overview_menus'),
+    'access arguments' => array('administer Menu Sync'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'menusync.admin.inc',
+  );
+
+  /* list menu rules */
+  $items['admin/content/menusync/%menu'] = array(
+    'title' => 'List rules',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('menusync_overview_rules', 3),
+    'access arguments' => array('administer Menu Sync'),
+    'type' => MENU_CALLBACK,
+    'file' => 'menusync.admin.inc',
+  );
+
+  /* list menu rules - default action */
+  $items['admin/content/menusync/%menu/list'] = array(
+    'title' => 'List rules',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+
+  /* add menu rule */
+  $items['admin/content/menusync/%menu/add/rule'] = array(
+    'title' => 'Add rule',
+    'page callback' => 'menusync_add_rule_page',
+    'page arguments' => array(3),
+    'access arguments' => array('administer Menu Sync'),
+    'type' => MENU_LOCAL_TASK,
+    'parent' => 'admin/content/menusync/%menu',
+    'file' => 'menusync.admin.inc',
+  );
+
+  /* edit menu rule */
+  $items['admin/content/menusync/edit/rule'] = array(
+    'title' => 'Edit rule',
+    'page callback' => 'menusync_admin_rule_edit',
+    'access arguments' => array('administer Menu Sync'),
+    'type' => MENU_CALLBACK,
+    'file' => 'menusync.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Parses menu_link (menu_name:mlid) into mlid.
+ */
+function menusync_find_mlid($menu_link) {
+  return drupal_substr($menu_link, strpos($menu_link, ':')+1);
+}
+
+/**
+ * Insert/update a rule.
+ */
+function menusync_save_rule(&$form_values) {
+  $form_values += array(
+    'description' => '',
+    'weight' => 0
+  );
+  if ($form_values['menu_link']) {
+    $form_values['mlid'] = menusync_find_mlid($form_values['menu_link']);
+  }
+  if ($form_values['msid']) {
+    /* has msid, update */
+    drupal_write_record('menusync_rules', $form_values, 'msid');
+    return SAVED_UPDATED;
+  }
+  else {
+    /* no msid, insert */
+    drupal_write_record('menusync_rules', $form_values);
+    return SAVED_NEW;
+  }
+}
+
+/**
+ * Delete a rule.
+ */
+function menusync_del_rule($msid) {
+  db_query('DELETE FROM {menusync_rules} WHERE msid = %d', $msid);
+  return SAVED_DELETED;
+}
+
+/**
+ * Load rules of a given menu.
+ */
+function menusync_load_rules($menu_name) {
+  $rows = NULL;
+  $result = db_query("SELECT msr.path, msr.weight, msr.description, ml.link_path
+    FROM {menusync_rules} AS msr
+      LEFT JOIN {menu_links} As ml ON ml.mlid = msr.mlid
+    WHERE msr.menu_name='%s'
+    ORDER BY msr.weight",
+    $menu_name
+  );
+  $rows = array();
+  while ($line = db_fetch_array($result)) {
+    $rows[] = $line;
+  }
+  return $rows;
+}
+
+/**
+ * Implementation of hook_preprocess_block().
+ *
+ * Fake having an item on a menu, with menu expansion and everything else
+ * entailed by that.
+ */
+function menusync_preprocess_block(&$vars) {
+  if ($vars['block']->module == "menu") {
+    $map = menusync_load_rules($vars['block']->delta);
+    if ($map) {
+      // Does this item have a menu link in this menu? If so then nothing to do.
+      $num = db_fetch_array(db_query(
+        "SELECT count(*) as num
+          FROM {menu_links}
+          WHERE menu_name = '%s'
+            AND link_path = '%s'",
+        $vars['block']->delta, $_GET['q']
+      ));
+      if ($num['num']) {
+        return;
+      }
+
+      // Otherwise work out from its alias whether it has a fake parent
+      $parent = menusync_fake_parent($_GET['q'], $map);
+
+      if (isset($parent)) {
+        $vars['block']->content = menusync_recreate_menu($parent, $vars['block']->delta);
+      }
+    }
+  }
+}
+
+/**
+ * Recreate a menu safely, by tweaking the item cache and then reverting.
+ *
+ * @param $url a Drupal URL that we're going to pretend to be at
+ * @param $menu_name the name of the menu
+ */
+function menusync_recreate_menu($url, $menu_name) {
+  if (!isset($menu_name)) {
+    $menu_name = menufake_get_navigation_name();
+  }
+
+  // Poison the cache for this page
+  $old_item = menu_get_item($_GET['q']);
+  $fake_item = menu_get_item($url);
+  menu_get_item($_GET['q'], $fake_item);
+
+  // Regenerate the menu content
+  $content = menu_tree_output(menu_tree_page_data($menu_name));
+
+  // Remove the poison!
+  menu_get_item($_GET['q'], $old_item);
+
+  // Return menu content
+  return $content;
+}
+
+/*
+ * Matches every rule to the menu item.
+ *
+ * @params $child a menu item
+ * @params $map a set of rules
+ */
+function menusync_fake_parent($child, $map) {
+  $child = drupal_get_path_alias($child);
+  foreach ($map as $rule) {
+    if (drupal_match_path($child, $rule['path'])) {
+      // System lookup on configured path for the "real" path?
+      $parent = drupal_lookup_path('source', $rule['link_path']);
+      if ($parent !== FALSE ) {
+        // found a parent, return it
+        return $parent;
+      }
+      // Otherwise return the path as configured
+      return $rule['link_path'];
+    }
+  }
+}

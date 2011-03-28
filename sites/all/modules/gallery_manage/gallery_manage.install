@@ -1,0 +1,5 @@
+<?php
+
+function gallery_manage_update_6100() {
+    return array();
+}

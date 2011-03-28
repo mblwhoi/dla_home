@@ -1,0 +1,582 @@
+<?php
+// $Id: $
+/**
+ * Enables mass assignment of images to galleries.
+ *
+ * @author Joshua Chan
+ */
+
+
+/**
+ * Implementation of hook_perm().
+ */
+function gallery_manage_perm() {
+    if (function_exists('image_gallery_perm')) {
+        return array();
+    } else {
+        return array('administer image galleries');
+    }
+}
+
+
+/**
+ * Provides compatibilty with old/new versions of image_gallery module.
+ * The image module previously provided _image_gallery_parent_select(), but in
+ * more recent versions, this function is only loaded for certain admin pages.
+ *
+ * @see _image_gallery_parent_select()
+ */
+function _gallery_manage_parent_select($tid, $title) {
+  if (function_exists('_image_gallery_parent_select')) {
+    return _image_gallery_parent_select($tid, $title);
+  }
+
+  $parents = taxonomy_get_parents($tid);
+  if ($parents) {
+    $parent = array_shift($parents);
+    $parent = $parent->tid;
+  }
+  else {
+    $parent = 0;
+  }
+
+  $children = taxonomy_get_tree(_image_gallery_get_vid(), $tid);
+
+  // A term can't be the child of itself, nor of its children.
+  foreach ($children as $child) {
+    $exclude[] = $child->tid;
+  }
+  $exclude[] = $tid;
+
+  $tree = taxonomy_get_tree(_image_gallery_get_vid());
+  $options[0] = '<'. t('root') .'>';
+  if ($tree) {
+    foreach ($tree as $term) {
+      if (!in_array($term->tid, $exclude)) {
+        $options[$term->tid] = str_repeat(' -- ', $term->depth) .' '. $term->name;
+      }
+    }
+  }
+
+  return array(
+    '#type' => 'select',
+    '#title' => $title,
+    '#default_value' => $parent,
+    '#options' => $options,
+    '#description' => t('Image galleries may be nested below other galleries.'),
+    '#required' => TRUE
+  );
+}
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function gallery_manage_menu() {
+  if (function_exists('image_gallery_perm')) {
+    $admin_perm = image_gallery_perm();
+  } else {
+    $admin_perm = array('administer image galleries');
+  }
+
+  $items['admin/content/image/manage'] = array(
+    'title' => 'Manage',
+    'description' => t('Assign images to galleries via thumbnails'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('gallery_manage_form'),
+    'access arguments' => $admin_perm,
+    'type' => MENU_LOCAL_TASK,
+  );
+  
+  $items['admin/settings/image/add-on'] = array(
+    'title' => 'Add-ons',
+    'description' => t('Other options'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('image_addon_settings'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 20,
+  );
+  
+  return $items;
+}
+
+
+/**
+ * Implementation of hook_theme().
+ */
+function gallery_manage_theme() {
+  return array(
+    'gallery_manage_form' => array(
+      'arguments' => array('form' => NULL),
+      'file' => 'gallery_manage.module',
+    ),
+  );
+}
+
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function gallery_manage_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'image_node_form') {
+    if ($message = variable_get('image_custom_message', '')) {
+      $message = _filter_html($message, ''); // strip out harmful HTML tags
+      $weight = variable_get('image_custom_message_weight', -4);
+      $form[] = array(
+        '#type' => 'markup',
+        '#value' => $message,
+        '#weight' => $weight,
+      );
+    }
+  }
+}
+
+
+/**
+ * "Add-ons" tab for Images settings.
+ */
+function image_addon_settings() {
+  $form['gallery_manage'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#title' => t('Custom message'),
+  );
+  $form['gallery_manage']['image_custom_message'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Message'),
+    '#description' => t('You may enter a message to show users before they upload images.'),
+    '#default_value' => variable_get('image_custom_message', ''),
+  );
+  for ($i=-50; $i<=50; $i++) {
+    $weight_options[$i] = $i;
+  }
+  $form['gallery_manage']['image_custom_message_weight'] = array(
+    '#type' => 'select',
+    '#title' => t('Weight'),
+    '#description' => t('This will affect where your message appears on the Create Image page.'),
+    '#options' => $weight_options,
+    '#default_value' => variable_get('image_custom_message_weight', -4),
+  );
+  
+  return system_settings_form($form);
+}
+
+
+/**
+ * Get or set the user specified sort field. Either node title or gallery 
+ * name.
+ *
+ * @return array(string $field, string $order)
+ */
+function _gallery_manage_sort_field($for_sql=false)
+{
+  // Check GET/POST first
+  ($field = $_REQUEST['gallery_manage_sort_field'])
+  or
+  // Then check the SESSION
+  ($field = $_SESSION['gallery_manage_sort_field'])
+  or
+  // Default sort field is Gallery name
+  ($field = 'gallery'); // term_data.name
+
+  ($order = $_REQUEST['gallery_manage_sort_order'])
+  or
+  ($order = $_SESSION['gallery_manage_sort_order'])
+  or
+  ($order = 'ASC');
+
+  // Save it to the SESSION for future reference
+  $_SESSION['gallery_manage_sort_field'] = $field;
+  $_SESSION['gallery_manage_sort_order'] = $order;
+
+  if ($for_sql) {
+    switch ($field) {
+      default:
+      case 'gallery':
+        $field = 'td.name';
+        break;
+      case 'title':
+        $field = 'n.title';
+        break;
+      case 'language':
+        $field = 'n.language';
+        break;
+    }
+    switch ($order) {
+      default:
+      case 'ASC':
+        $order = 'ASC';
+        break;
+      case 'DESC':
+        $order = 'DESC';
+        break;
+    }
+  }
+  
+  return array($field, $order);
+}
+
+
+/**
+ * Builds a list of form elements for every thumbnail image.
+ */
+function _gallery_manage_thumbnail_list() {
+  global $base_path;
+
+  $table = array(
+    'nid' => array(),
+    'old_tid' => array(),
+    'title' => array(),
+    'term' => array(),
+    'filepath' => array(),
+  );
+  
+  $query = "SELECT n.nid, n.vid, n.title, f.filepath, td.name, tn.tid, n.language FROM {node} n INNER JOIN {image} i ON n.nid = i.nid INNER JOIN {files} f ON i.fid = f.fid LEFT JOIN {term_node} tn ON n.nid = tn.nid LEFT JOIN {term_data} td ON tn.tid = td.tid WHERE n.type = 'image' AND f.filename = 'thumbnail'";
+  
+  if ($_SESSION['gallery_manage_filter_mode'] == 'title') {
+    $title_filter = _gallery_manage_filter();
+    $query .= " AND n.title LIKE '%s'";
+    $query_arg = '%'.$title_filter.'%';
+  } else {
+    $tid_filter = _gallery_manage_filter();
+    if ($tid_filter == 0) {
+      // Include images not assigned to any gallery.
+      $query .= " AND (tn.tid = 0 OR tn.tid IS NULL)";
+    } elseif ($tid_filter > 0) {
+      // Filter results to one specific gallery.
+      $query .= " AND tn.tid = ".(int)$tid_filter;
+    }
+  }
+  
+  // Need to be very specific about the sort order. Some builds of MySQL may
+  // otherwise give inconsistent results. Consistency is important because
+  // this function is called twice when processing a form. First time to build
+  // the form contents. Second time when evaluating the submitted form. If the
+  // two lists are not exactly in the same order, Drupal will mismatch the 
+  // checkboxes with the wrong images.
+  list($sort_field, $sort_order) = _gallery_manage_sort_field(true);
+  $query .= " ORDER BY $sort_field $sort_order, n.nid ASC";
+  
+  if (empty($query_arg)) {
+    $result = pager_query($query, 20, 0);
+  } else {
+    $result = pager_query($query, 20, 0, NULL, $query_arg);
+  }
+  while ($obj = db_fetch_object($result)) {
+    $table['nid'][] = array(
+      '#type' => 'checkbox',
+      '#return_value' => $obj->nid,
+      '#checked' => false,
+    );
+    $table['old_tid'][] = array(
+      '#type' => 'value',
+      '#value' => (int)$obj->tid,
+    );
+    $table['vid'][] = array(
+      // Note that this 'vid' is for version and not vocabulary
+      '#type' => 'value',
+      '#value' => (int)$obj->vid,
+    );
+    $table['title'][] = array(
+      '#type' => 'markup',
+      '#value' => $obj->title,
+    );
+    $table['term'][] = array(
+      '#type' => 'markup',
+      '#value' => $obj->name,
+    );
+    // Image node language (if multilingual enabled for images)
+    if (variable_get('language_content_type_image', 0)) {
+      $table['language'][] = array(
+        '#type' => 'markup',
+        '#value' => $obj->language,
+      );
+    }
+    
+    // Determine the image src web URL
+    if (variable_get('file_downloads', FILE_DOWNLOADS_PUBLIC) == FILE_DOWNLOADS_PRIVATE) {
+      $src = "{$base_path}image/view/{$obj->nid}/thumbnail";
+    } else {
+      $src = "{$base_path}{$obj->filepath}";
+    }
+    
+    $table['filepath'][] = array(
+      '#type' => 'markup',
+      '#value' => l(
+        '<img src="'.$src.'" />', 
+        'node/'.$obj->nid, 
+        array('html' => true)
+      ),
+    );
+  }
+  
+  return $table;
+}
+
+
+/**
+ * Form definition for the gallery assignment page.
+ */
+function gallery_manage_form(&$form_state, $edit = array()) {
+  // Galleries SELECT list
+  $galleries = _gallery_manage_parent_select(-1, t('Gallery'));
+  
+  // Are we filtering by Gallery (tid) or by title?
+  ($filter_mode = $_REQUEST['gallery_manage_filter_mode'])
+  or
+  ($filter_mode = $_SESSION['gallery_manage_filter_mode']);
+  switch ($filter_mode) {
+    default:
+    case 'tid':
+      $filter_mode = 'tid';
+      break;
+    case 'title':
+      $filter_mode = 'title';
+      break;
+  }
+  $_SESSION['gallery_manage_filter_mode'] = $filter_mode;
+  
+  $form = array();
+  $form['#tree'] = true;
+  
+  $form['filter'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => false,
+    '#title' => 
+        l(t('Filter by gallery'), $_REQUEST['q'], array('query' => array('gallery_manage_filter_mode' => 'tid')))
+        .' / '.
+        l(t('Search by title'), $_REQUEST['q'], array('query' => array('gallery_manage_filter_mode' => 'title')))
+  );
+  if ($filter_mode == 'title') {
+    // Filter by title
+    $form['filter']['title'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Search string'),
+      '#description' => t('Show only images that match this title'),
+      '#default_value' => _gallery_manage_filter(),
+    );
+  } else {
+    // Filter by galleries
+    $form['filter']['tid'] = $galleries;
+    $form['filter']['tid']['#default_value'] = _gallery_manage_filter();
+    $form['filter']['tid']['#title'] = t('Gallery filter');
+    $form['filter']['tid']['#description'] = t('Show only images from this gallery');
+  }
+  $form['filter'][] = array(
+    '#type' => 'submit',
+    '#value' => t('Filter'),
+    '#submit' => array('gallery_manage_form_filter'),
+  );
+  $form['filter'][] = array(
+    '#type' => 'submit',
+    '#value' => t('Reset'),
+    '#submit' => array('gallery_manage_form_filter'),
+  );
+  
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => false,
+    '#title' => t('Assign selected images to'),
+  );
+  $form['options']['tid'] = $galleries;
+  $form['options'][] = array(
+    '#type' => 'submit',
+    '#value' => t('Update'),
+  );
+  
+  $form['table'] = _gallery_manage_thumbnail_list();
+  $form[] = array(
+    '#value' => theme('pager', NULL, 20, 0),
+  );
+  $form['#theme'] = 'gallery_manage_form';
+  
+  return $form;
+}
+
+
+/**
+ * Formats the gallery assignment form by organizing each image's form fields
+ * into a table row.
+ */
+function theme_gallery_manage_form($form) {
+  $output = '';
+  $output .= drupal_render($form['filter']);
+  $output .= drupal_render($form['options']);
+  
+  $multilingual_image = variable_get('language_content_type_image', 0);
+  
+  if (empty($form['table']['nid'])) {
+    $output .= '<div>'.t('There are no gallery images.').'</div>';
+  } else {
+    // Table sort order links
+    list($sort_field, $sort_order) = _gallery_manage_sort_field();
+    if ($sort_field == 'title' && $sort_order == 'ASC') {
+      // Link should reverse the current sort order
+      $title_order = 'DESC';
+    } else {
+      $title_order = 'ASC';
+    }
+    if ($sort_field == 'gallery' && $sort_order == 'ASC') {
+      // Link should reverse the current sort order
+      $gallery_order = 'DESC';
+    } else {
+      $gallery_order = 'ASC';
+    }
+    if ($sort_field == 'language' && $sort_order == 'ASC') {
+      // Link should reverse the current sort order
+      $language_order = 'DESC';
+    } else {
+      $language_order = 'ASC';
+    }
+      
+    // Organize the table headers
+    $header = array();
+    $header[] = theme('table_select_header_cell');
+    $header[] = l(t('Title'), $_REQUEST['q'], array('query' => array(
+        'gallery_manage_sort_field' => 'title',
+        'gallery_manage_sort_order' => $title_order,
+    )));
+    $header[] = l(t('Gallery'), $_REQUEST['q'], array('query' => array(
+        'gallery_manage_sort_field' => 'gallery',
+        'gallery_manage_sort_order' => $gallery_order,
+    )));
+    if ($multilingual_image) {
+      $header[] = l(t('Language'), $_REQUEST['q'], array('query' => array(
+          'gallery_manage_sort_field' => 'language',
+          'gallery_manage_sort_order' => $language_order,
+      )));
+    }
+    $header[] = t('Thumbnail');
+    
+    // Organize the table rows
+    $rows = array();
+    foreach (element_children($form['table']['title']) as $key) {
+      $row = array();
+      $row[] = drupal_render($form['table']['nid'][$key]);
+      $row[] = drupal_render($form['table']['title'][$key]);
+      $row[] = drupal_render($form['table']['term'][$key]);
+      if ($multilingual_image) {
+        $row[] = drupal_render($form['table']['language'][$key]);
+      }
+      $row[] = drupal_render($form['table']['filepath'][$key]);
+      $rows[] = $row;
+    }
+    $output .= theme('table', $header, $rows);
+  }
+  
+  $output .= drupal_render($form);
+  return $output;
+}
+
+
+function gallery_manage_form_validate($form, &$form_state) {
+  //drupal_set_message('<pre>'.var_export($form_state,1).'</pre>');
+  if ($form_state['values']['op'] == t('Update')) {
+    $valid = false;
+    if (!empty($form_state['values']['table']['nid'])) {
+      foreach ($form_state['values']['table']['nid'] as $nid) {
+        if ($nid > 0) {
+          // Found at least one selected image.
+          $valid = true;
+          break;
+        }
+      }
+    }
+    if (!$valid) {
+      form_set_error('', t('You must select at least one image to assign to a gallery.'));
+    }
+  }
+}
+
+
+/**
+ * Handles form submission from the gallery assignment page.
+ */
+function gallery_manage_form_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  
+  // Find image nodes that already have a taxonomy term attached
+  // (These are the images that have been added to a gallery before)
+  $nodes_all = $values['table']['nid'];
+  $node_list_string = implode(',', $nodes_all);
+  $result = db_query("SELECT nid FROM {term_node} WHERE nid IN (%s)", $node_list_string);
+  $nodes_with_terms = array();
+  while ($obj = db_fetch_object($result)) {
+    $nodes_with_terms[$obj->nid] = $obj->nid;
+  }
+
+
+  foreach ($values['table']['nid'] as $key => $val) {
+    $nid = $values['table']['nid'][$key];
+    $old_tid = $values['table']['old_tid'][$key];
+    $vid = $values['table']['vid'][$key];
+    $tid = $values['options']['tid'];
+    if ($nid) {
+      if (in_array($nid, $nodes_with_terms)) {
+        // Move image to from one gallery to another
+        db_query("UPDATE {term_node} SET tid = %d WHERE nid = %d AND vid = %d AND tid = %d", $tid, $nid, $vid, $old_tid);
+      } else {
+        // Assign image to a gallery for the first time
+        db_query("INSERT INTO {term_node} (nid, vid, tid) VALUES (%d, %d, %d)", $nid, $vid, $tid);
+      }
+    }
+  }
+  drupal_set_message(t('Finished assigning images to galleries'));
+}
+
+
+function gallery_manage_form_filter($form, &$form_state) {
+  switch ($form_state['values']['op']) {
+    case t('Filter'):
+      // Set the filter
+      if ($_SESSION['gallery_manage_filter_mode'] == 'title') {
+        _gallery_manage_filter($form_state['values']['filter']['title']);
+      } else {
+        _gallery_manage_filter($form_state['values']['filter']['tid']);
+      }
+      break;
+
+    case t('Reset'):
+      if ($_SESSION['gallery_manage_filter_mode'] == 'title') {
+        $form_state['values']['filter']['title'] = '';
+        _gallery_manage_filter('');
+      } else {
+        $form_state['values']['filter']['tid'] = -1;
+        _gallery_manage_filter(-1);
+      }
+      break;
+  }
+}
+
+
+/**
+ * Sets and/or gets the current gallery filter.
+ */
+function _gallery_manage_filter($filter = null) {
+  // Default gallery filter <root>
+  if (!isset($_SESSION['gallery_manage_filter'])) {
+    $_SESSION['gallery_manage_filter'] = -1;
+  }
+  // Default title filter (blank)
+  if (!isset($_SESSION['gallery_manage_filter_text'])) {
+    $_SESSION['gallery_manage_filter_text'] = '';
+  }
+
+  if ($_SESSION['gallery_manage_filter_mode'] == 'title') {
+    if (is_null($filter)) {
+      $filter = $_SESSION['gallery_manage_filter_text'];
+    } else {
+      $_SESSION['gallery_manage_filter_text'] = $filter;
+    }
+  }
+  else {
+    if (is_null($filter)) {
+      $filter = $_SESSION['gallery_manage_filter'];
+    } else {
+      $_SESSION['gallery_manage_filter'] = $filter;
+    }
+  }
+
+  return db_escape_string($filter);
+}

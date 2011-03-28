@@ -1,0 +1,187 @@
+# $Id: menusync.pot,v 1.1.2.2 2010/07/09 13:14:14 rsevero Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  menusync.admin.inc,v 1.2.2.4 2010/07/09 12:44:13 rsevero
+#  menusync.info,v 1.1 2010/07/08 20:32:33 rsevero
+#  menusync.module,v 1.1.2.2 2010/07/08 21:51:05 rsevero
+#  menusync.install,v 1.1.2.3 2010/07/09 13:01:45 rsevero
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2010-07-09 10:07-0300\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: menusync.admin.inc:29
+msgid "list rules"
+msgstr ""
+
+#: menusync.admin.inc:30
+msgid "add rule"
+msgstr ""
+
+#: menusync.admin.inc:54
+msgid "No menus available."
+msgstr ""
+
+#: menusync.admin.inc:57 menusync.info:0
+msgid "Menu"
+msgstr ""
+
+#: menusync.admin.inc:57
+msgid "Rules"
+msgstr ""
+
+#: menusync.admin.inc:58;121
+msgid "Operations"
+msgstr ""
+
+#: menusync.admin.inc:69
+msgid "Rules in %menu"
+msgstr ""
+
+#: menusync.admin.inc:80;279;295
+msgid "edit"
+msgstr ""
+
+#: menusync.admin.inc:88;222
+msgid "Save"
+msgstr ""
+
+#: menusync.admin.inc:118
+msgid "No rules available."
+msgstr ""
+
+#: menusync.admin.inc:120
+msgid "Menu item "
+msgstr ""
+
+#: menusync.admin.inc:120;203
+msgid "Path"
+msgstr ""
+
+#: menusync.admin.inc:120;210
+msgid "Description"
+msgstr ""
+
+#: menusync.admin.inc:120;216
+msgid "Weight"
+msgstr ""
+
+#: menusync.admin.inc:147
+msgid "Add rule to %menu"
+msgstr ""
+
+#: menusync.admin.inc:162
+msgid "Set rule to %menu"
+msgstr ""
+
+#: menusync.admin.inc:195
+msgid "Choose the menu item to be activated by the path."
+msgstr ""
+
+#: menusync.admin.inc:202
+msgid "Type a path that activates the menu item (wildcard * admitted)."
+msgstr ""
+
+#: menusync.admin.inc:209
+msgid "Description of your Menu Sync rule."
+msgstr ""
+
+#: menusync.admin.inc:215
+msgid "The lighter rules will be tested first."
+msgstr ""
+
+#: menusync.admin.inc:227;256;323
+msgid "Delete"
+msgstr ""
+
+#: menusync.admin.inc:240
+msgid "Path cannot be empty."
+msgstr ""
+
+#: menusync.admin.inc:243
+msgid "Path cannot start with slash."
+msgstr ""
+
+#: menusync.admin.inc:246
+msgid "You have to choose a menu item."
+msgstr ""
+
+#: menusync.admin.inc:271;274
+msgid "Created new rule with path %path."
+msgstr ""
+
+#: menusync.admin.inc:286;289
+msgid "Updated rule with path %path."
+msgstr ""
+
+#: menusync.admin.inc:319
+msgid "Are you sure you want to delete the rule to path %path to menu item %link_title?"
+msgstr ""
+
+#: menusync.admin.inc:322
+msgid "Deleting a rule cannot be undone."
+msgstr ""
+
+#: menusync.admin.inc:324
+msgid "Cancel"
+msgstr ""
+
+#: menusync.admin.inc:336;339
+msgid "Deleted rule %name."
+msgstr ""
+
+#: menusync.admin.inc:274;289;339
+msgid "menusync"
+msgstr ""
+
+#: menusync.module:15
+msgid "administer Menu Sync"
+msgstr ""
+
+#: menusync.module:48 menusync.info:0
+msgid "Menu Sync"
+msgstr ""
+
+#: menusync.module:49
+msgid "Manage Menu Sync rules."
+msgstr ""
+
+#: menusync.module:59;69
+msgid "List rules"
+msgstr ""
+
+#: menusync.module:76
+msgid "Add rule"
+msgstr ""
+
+#: menusync.module:87
+msgid "Edit rule"
+msgstr ""
+
+#: (duplicate) menusync.install:97 
+msgid "Menu Fake"
+msgstr ""
+
+#: (duplicate) menusync.install:98 
+msgid "Modules Menu Sync and Menu Fake should not be used\n          together. Please move all Menu Fake rules to Menu Sync and uninstall\n          Menu Fake."
+msgstr ""
+
+#: (duplicate) menusync.install:103 
+msgid "Enabled"
+msgstr ""
+
+#: menusync.info:0
+msgid "Activates menus using paths rules."
+msgstr ""
+
