@@ -1,0 +1,65 @@
+/* Oral History Search Page Styling */
+
+/* Oral History List Styling */
+.view-oral-history-list > .content > .view-content > .row{
+    margin-top: 2em;
+}
+
+.view-oral-history-list .field{
+    margin-top: 1em;
+}
+
+.view-oral-history-list > .content > .view-content > .row{
+    border-bottom: thin solid #DDDDDD;
+}
+
+.view-oral-history-list > .content > .view-content > .row.first{
+    margin-top: none;
+}
+
+.view-oral-history-list > .content > .view-content > .row > .panel-display > .panel-col-top > div > .views-field-title{
+    font-size: 150%;
+    margin-left: 1em;
+}
+
+.view-oral-history-list > .content > .view-content > .row > .panel-display > .panel-col-bottom > div{
+    margin-left: 2em;
+}
+
+.view-oral-history-list .interview-subjects > label, .view-oral-history-list .interviewers > label{
+    font-size: 125%;
+}
+
+.view-oral-history-list .interview-subjects > div, .view-oral-history-list .interviewers > div{
+    margin-left: 1em;
+}
+
+
+.oral-history-person-grid .panel-2col .panel-col-first{
+    width: inherit;
+}
+
+.oral-history-person-grid .panel-2col .panel-col-last{
+    max-width:50%;
+}
+
+
+.oral-history-person-grid table.views-view-grid > tbody > tr > td{
+    vertical-align: top;
+}
+
+.oral-history-person-grid .field-content{
+    padding-left: 1em;
+}
+
+.oral-history-person-grid .views-field-title .field-content{
+    padding-left: 0em;;
+}
+
+.oral-history-person-grid .views-field-field-image-fid .field-content{
+    padding-left: 0em;;
+}
+
+.view-field-interviewers .views-field-title .field-content{
+    text-align: center;
+}

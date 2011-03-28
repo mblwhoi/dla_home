@@ -1,0 +1,9 @@
+
+name = DLA Home Site Theme
+description = DLA Home Site Theme
+base theme = dla_theme
+core = 6.x
+engine = phptemplate
+
+stylesheets[all][] = css/dla-home-theme-style.css
+

@@ -1,0 +1,8 @@
+body.front h1.title{
+    text-align: center;
+}
+
+#pid-home .column{
+    width: 33%;
+    float: left;
+}
