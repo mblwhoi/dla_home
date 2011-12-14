@@ -1,0 +1,5 @@
+core = "6.x"
+description = "MBLWHOI DLA Home Customizations"
+name = "dla_home"
+package = "MBLWHOI"
+version = "6.x-1.x-dev"
