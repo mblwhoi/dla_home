@@ -22,8 +22,37 @@ function dla_home_menu() {
       'description' => 'Expose DLA Menu.',
       'page callback' => '_dla_home_expose_dla_menu',
       'access callback' => TRUE,
+      'type' => MENU_CALLBACK
+    ),
+    'consume_menu' => array(
+      'title' => 'foo',
+      'page callback' => '_dla_home_consume_dla_menu',
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK
     )
   );
+}
+
+function _dla_home_expose_dla_menu(){
+  drupal_set_header('Content-Type: text/html');
+  print '<div class="dla-menu">' . menu_tree_output(menu_tree_all_data('menu-dla-menu')) . '</div>';
+  exit(0);
+}
+
+function _dla_home_consume_dla_menu(){
+  global $base_url;
+
+  drupal_set_header('Content-Type: text/html');
+
+  preg_match('@^(http://[^/]+)@i',$base_url, $matches);
+  $hostname = $matches[0];
+
+  $menu_url =  $hostname . '/dla/dla_menu';
+
+  print $menu_url;
+  print file_get_contents($menu_url);
+
+  exit(0);
 }
 
 
