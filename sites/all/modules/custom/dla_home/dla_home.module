@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * @file
+ * customizations for the DLA home page site.
+ */
+
+//////////////////////////////////////////////////////////////////////////////
+
+define('LDAP_AUTHENTICATION_PROFILE_WEIGHT',       4);
+
+//////////////////////////////////////////////////////////////////////////////
+// Core API hooks
+
+/**
+ * Implements hook_menu().
+ */
+function dla_home_menu() {
+  return array(
+    'dla_menu' => array(
+      'title' => 'DLA Menu',
+      'description' => 'Expose DLA Menu.',
+      'page callback' => '_dla_home_expose_dla_menu',
+      'access callback' => TRUE,
+    )
+  );
+}
+
+
