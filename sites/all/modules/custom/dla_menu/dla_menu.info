@@ -1,0 +1,5 @@
+core = "6.x"
+description = "DLA Menu Module."
+name = "dla_menu"
+package = "MBLWHOI"
+version = "6.x-1.x-dev"

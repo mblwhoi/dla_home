@@ -1,0 +1,58 @@
+<?php
+
+/**
+ * @file
+ * DLA Menu module.  Exposes menu as html for other sites to grab.
+ */
+
+//////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////
+// Core API hooks
+
+/**
+ * Implements hook_menu().
+ */
+function dla_menu_menu() {
+  return array(
+    'dla_menu' => array(
+      'title' => 'DLA Menu',
+      'description' => 'Expose DLA Menu.',
+      'page callback' => 'dla_menu_expose_dla_menu',
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK
+    ),
+
+    'admin/settings/dla_menu' => array(
+      'title' => 'DLA Menu Settings',
+      'description' => 'Edit DLA Menu',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('dla_menu_admin'),
+      'access arguments' => array('access administration pages'),
+      'type' => MENU_NORMAL_ITEM
+    ),
+  );
+}
+
+function dla_menu_expose_dla_menu(){
+  drupal_set_header('Content-Type: text/html');
+  print variable_get('dla_menu_html', '');
+  exit(0);
+}
+
+function dla_menu_admin(){
+  $form = array();
+  $form['dla_menu_html'] = array(
+    '#type' => 'textarea',
+    '#title' => 'DLA Menu HTML',
+    '#default_value' => variable_get('dla_menu_html', '<ul id="dla-nav-menu">' . "\n" . '</ul>'),
+    '#description' => "Enter raw HTML to be used for the DLA Menu.  This menu will be used by the DLA sites."
+  );
+  
+  return system_settings_form($form);
+}
+
+function dla_menu_admin_validate($form, &$form_state){
+  return;
+}
