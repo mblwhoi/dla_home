@@ -48,9 +48,9 @@ function dla_menu_admin(){
     '#type' => 'textarea',
     '#title' => 'DLA Menu HTML',
     '#default_value' => variable_get('dla_menu_html', '<ul id="dla-nav-menu">' . "\n" . '</ul>'),
-    '#description' => "Enter raw HTML to be used for the DLA Menu.  This menu will be used by the DLA sites.  Make sure the top-level '&lt;ul&gt;' element has id 'dla-nav-menu' e.g. '&lt;div id=\"dla-nav-menu\"&gt;..."
+    '#description' => "Enter raw HTML to be used for the DLA Menu.  This menu will be used by the DLA sites.  Make sure the top-level '&lt;ul&gt;' element has id 'dla-nav-menu' e.g. '&lt;ul id=\"dla-nav-menu\"&gt;..."
   );
-  
+
   return system_settings_form($form);
 }
 
